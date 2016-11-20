@@ -3,21 +3,14 @@ package dragonbids.client;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.JTabbedPane;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
-import javax.swing.JTextField;
-import javax.swing.JTextArea;
-import javax.swing.JLabel;
 import java.awt.Color;
 import java.awt.Font;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Vector;
 import java.awt.Toolkit;
@@ -26,14 +19,12 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 import dragonbids.api.*;
+import sun.security.krb5.internal.crypto.Des;
+
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import javax.swing.SwingConstants;
-import javax.swing.JList;
-import javax.swing.ListSelectionModel;
-import javax.swing.JSeparator;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
@@ -54,6 +45,7 @@ public class UserWindow extends JFrame {
 	private JPanel pAccount;
 	private JTextField sellDuration;
 	private JTextField sellTitle;
+	private JTextArea sellDescription;
 	private JTextField buyTitle;
 	private JTextField buyCurrentPrice;
 	private JTextField buyTimeLeft;
@@ -397,7 +389,7 @@ public class UserWindow extends JFrame {
 		lblNewLabel_4.setBounds(6, 116, 80, 16);
 		pCreateAuction.add(lblNewLabel_4);
 		
-		JTextArea sellDescription = new JTextArea();
+		sellDescription = new JTextArea();
 		sellDescription.setLineWrap(true);
 		sellDescription.setWrapStyleWord(true);
 		sellDescription.setBounds(122, 116, 445, 106);
@@ -502,8 +494,37 @@ public class UserWindow extends JFrame {
 				// The Create Listing Class would get the remote object stub (stub)
 					// The Listing Class would ultimately invoke the server like this:
 				try{
-					ListingSkeleton listing = new ListingSkeleton();
+					String Title=sellTitle.getText();
+					String Description= sellDescription.getText();
+					String Duration= sellDuration.getText();
+					if(Title.length()<3){
+						JOptionPane.showMessageDialog(null,"You need to input a Title");
+						return;
+					}
+					if(Description.length()<3){
+						JOptionPane.showMessageDialog(null,"You need to input a Description");
+						return;
+					}
+					if(Duration.length()<10){
+						JOptionPane.showMessageDialog(null,"You need to input a Duration");
+						return;
+					}
+					LocalDateTime completeDateTime;
+					try {
+						completeDateTime = LocalDateTime.parse(Duration);
+					}
+					catch (Exception e)
+					{
+						JOptionPane.showMessageDialog(null,"Invalid DateTime Format");
+						return;
+					}
+					ListingSkeleton listing= new ListingSkeleton();
+					listing.auctionDescription= Description;
+					listing.auctionTile=Title;
+					listing.sellerUsername= usernameInput.getText();
+					listing.auctionCompletionDateTime= completeDateTime;
 					stub.createListing(listing);
+
 				}
 				catch (RemoteException e)
 				{
