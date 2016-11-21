@@ -1,8 +1,0 @@
-#BlueJ class context
-comment0.params=idToCancel
-comment0.target=boolean\ cancelAuction(int)
-comment1.params=idToModify\ componentToMod
-comment1.target=void\ modifyAuction(int,\ int)
-comment2.params=
-comment2.target=boolean\ createAuction()
-numComments=3

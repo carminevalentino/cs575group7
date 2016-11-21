@@ -1,9 +1,0 @@
-#BlueJ class context
-comment0.params=
-comment0.target=HandlerTest()
-comment0.text=\r\n\ Constructor\ for\ objects\ of\ class\ HandlerTest\r\n
-comment1.params=price\ userid
-comment1.target=void\ testBid(int,\ java.lang.String)
-comment2.params=minutes
-comment2.target=void\ testExtend(long)
-numComments=3

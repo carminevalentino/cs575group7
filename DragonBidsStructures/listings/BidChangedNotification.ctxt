@@ -1,7 +1,0 @@
-#BlueJ class context
-comment0.params=userid\ listingID\ oldPrice\ newPrice
-comment0.target=BidChangedNotification(java.lang.String,\ int,\ long,\ long)
-comment0.text=\r\n\ Constructor\ for\ objects\ of\ class\ BidChangedNotification\r\n
-comment1.params=
-comment1.target=java.lang.String\ toString()
-numComments=2

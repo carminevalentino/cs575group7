@@ -1,4 +1,4 @@
-package DragonBidsApi.src.dragonbids.api;
+package dragonbids.api;
 
 import javax.swing.*;
 import javax.swing.event.*;

@@ -9,6 +9,8 @@ local.properties
 .settings/
 .loadpath
 .recommenders
+*.bluej
+*.ctxt
 
 # Eclipse Core
 .project

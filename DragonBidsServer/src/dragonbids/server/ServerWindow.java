@@ -1,4 +1,4 @@
-package DragonBidsServer.src.dragonbids.server;
+package dragonbids.server;
 
 import java.awt.Color;
 import java.awt.EventQueue;
@@ -16,7 +16,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JTextArea;
 
-import DragonBidsApi.src.dragonbids.api.*;
+import dragonbids.api.*;
 
 public class ServerWindow extends JFrame {
 
@@ -29,7 +29,7 @@ public class ServerWindow extends JFrame {
 	private JButton btnConnect;
 	private JTextArea textArea;
 	private RMIRegisterServer rmiRegister = new RMIRegisterServer();
-	private DragonBidsServer dragonBidsServer = new DragonBidsServer();
+	private DragonBidsServer dragonBidsServer;
 	private boolean serverStarted = false;
 	private int portNumber = 1099; // Default Port Number RMI Registry Runs on
 	
@@ -58,6 +58,8 @@ public class ServerWindow extends JFrame {
 	 * Create the frame.
 	 */
 	public ServerWindow() {
+		dragonBidsServer = new DragonBidsServer(); //Instantiate Server Object in Constructor
+		
 		setTitle("DragonBids Server");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 600, 300);
@@ -116,6 +118,7 @@ public class ServerWindow extends JFrame {
 		});
 		btnConnect.setBounds(477, 246, 117, 29);
 		contentPane.add(btnConnect);
+		
 	}
 	
 	private void startServer()
@@ -145,6 +148,7 @@ public class ServerWindow extends JFrame {
 				serverStarted = false;
 				btnConnect.setText("Start Server");
 				System.out.println("RMI Register Destroyed...");
+				System.exit(NORMAL); //Noticed that the RMI Register won't fully terminate until application exits
 			}
 			else
 			{
