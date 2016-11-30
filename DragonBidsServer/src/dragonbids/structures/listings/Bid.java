@@ -1,12 +1,14 @@
 package dragonbids.structures.listings;
 import java.time.*;
+import java.io.*;
 import java.sql.Timestamp;
 
 /**
  */
-public class Bid implements Comparable<Bid>
+public class Bid implements Comparable<Bid>, Serializable
 {
-    private String userid;
+	private static final long serialVersionUID = 2256540585786924469L;
+	private String userid;
     long bidPrice;
     LocalDateTime datePlaced;
     

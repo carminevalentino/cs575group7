@@ -148,7 +148,7 @@ public class ServerWindow extends JFrame {
 				serverStarted = false;
 				btnConnect.setText("Start Server");
 				System.out.println("RMI Register Destroyed...");
-				System.exit(NORMAL); //Noticed that the RMI Register won't fully terminate until application exits
+				//System.exit(NORMAL); //Noticed that the RMI Register won't fully terminate until application exits
 			}
 			else
 			{

@@ -9,7 +9,9 @@ package dragonbids.structures.listings;
  */
 public class Auction extends Listing
 {
-    private BidHistory bidHistory;
+
+	private static final long serialVersionUID = -6365418462569296789L;
+	private BidHistory bidHistory;
     
     /**
      */
@@ -18,7 +20,7 @@ public class Auction extends Listing
         super(listingUID, creatorID, title, description, new Object(), 0, 180);
         this.bidHistory = new BidHistory();
         bidHistory.addBid(creatorID, currentPrice);
-        addObserver(new AuctionObserver());
+        //addObserver(new AuctionObserver());
     }
     
     public void addBid(String userid, long bid)
@@ -26,8 +28,8 @@ public class Auction extends Listing
         long temp = currentPrice;
         bidHistory.addBid(userid, bid);
         this.currentPrice = bid;
-        setChanged();
-        notifyObservers(new BidChangedNotification(userid, listingID, bid, temp));
+        //setChanged();
+        //notifyObservers(new BidChangedNotification(userid, listingID, bid, temp));
     }
     
     public Bid getHighBid()

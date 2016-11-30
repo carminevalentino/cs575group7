@@ -13,6 +13,6 @@ public interface DragonBidsServer_I extends Remote {
 	public boolean modifyListing(ListingSkeleton listing) throws RemoteException;
 	public boolean placeBid(ListingSkeleton listing) throws RemoteException;
 	public boolean createUser(String username) throws RemoteException;
-	public boolean remoteListing(int listingId) throws RemoteException;
+	public boolean removeListing(int listingId) throws RemoteException;
 	public Vector<String> getUsers() throws RemoteException;
 }

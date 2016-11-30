@@ -1,5 +1,6 @@
 package dragonbids.structures.listings;
 import java.util.*;
+import java.io.Serializable;
 
 
 /**
@@ -8,9 +9,12 @@ import java.util.*;
  * @author (your name) 
  * @version (a version number or a date)
  */
-public class BidHistory
+public class BidHistory implements Serializable
 {
-    LinkedList<Bid> bids;
+
+	private static final long serialVersionUID = -7082260414627474298L;
+	LinkedList<Bid> bids;
+    
 
     /**
      * Constructor for objects of class BidHistory
@@ -36,4 +40,10 @@ public class BidHistory
         // select bid having min timestamp
         return bids.getFirst();
     }
+    
+//    private void writeObject(ObjectOutputStream aOutputStream) throws IOException 
+//    {
+//    	
+//    }
+  
 }

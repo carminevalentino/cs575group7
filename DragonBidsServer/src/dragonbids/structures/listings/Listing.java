@@ -2,17 +2,20 @@ package dragonbids.structures.listings;
 
 import java.rmi.RemoteException;
 import java.sql.Timestamp;
-import java.util.*;
-
 import dragonbids.api.ListingSkeleton;
-
+import java.util.*;
 import java.time.*;
+import java.io.Serializable;
 
 /**
  * @author Lew Cannalongo
- * @version 11-11-16
+ * @version 11-21-16
  */
-public abstract class Listing extends Observable {
+public class Listing extends Observable implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2408533539417957356L;
 	String title;
 	String description;
 	int listingID;
@@ -20,7 +23,7 @@ public abstract class Listing extends Observable {
 	LocalDateTime createDate;
 	LocalDateTime expirationDate;
 	String creatorID;
-	Object photo;
+	//Object photo;
 
 	// using a variety of setProperty() methods allows a proxy to easily
 	// manipulate a Listing
@@ -36,17 +39,12 @@ public abstract class Listing extends Observable {
 		setStartingPrice(startingPrice);
 		setTitle(title);
 		setDesc(description);
-		setPhoto(photo);
+//		setPhoto(photo);
 
 	}
+	
+	// setter methods. consider making PROTETECTED rather than PUBLIC and moving Handler classes into Listing package
 
-	public long timeLeft() {
-		return Duration.between(LocalDateTime.now(), expirationDate).toMinutes();
-	}
-
-	public LocalDateTime getExpiration() {
-		return expirationDate;
-	}
 
 	public void setExpiration(LocalDateTime endingTime) {
 		expirationDate = endingTime;
@@ -66,20 +64,41 @@ public abstract class Listing extends Observable {
 		this.description = desc;
 	}
 
-	public void setPhoto(Object photo) {
-		this.photo = photo;
-	}
-
+//	public void setPhoto(Object photo) {
+//		this.photo = photo;
+//	}
+//	
+	@Override
 	public String toString() {
-		return this.getClass() + " // Listing ID: " + listingID;
+		return this.getClass() + " // Listing ID: " + listingID + " // " + this.title;
 	}
 
+	// getter methods
+		
 	public final String getDesc() {
 		return description;
 	}
 
 	public final String getTitle() {
 		return title;
+	}
+	
+	public final long getCurrentPrice()
+	{
+		return currentPrice;
+	}
+	
+	public final long timeLeft() {
+		return Duration.between(LocalDateTime.now(), expirationDate).toMinutes();
+	}
+
+	public final LocalDateTime getExpiration() {
+		return expirationDate;
+	}
+	
+	public final int getListingID()
+	{
+		return listingID;
 	}
 
 	public final ListingSkeleton extractSkeleton() throws RemoteException {
@@ -93,4 +112,5 @@ public abstract class Listing extends Observable {
 
 		return skele;
 	}
+
 }

@@ -22,7 +22,7 @@ public class HandlerTest
         hndl = new AuctionHandler(auc);
     }
     
-    void testBid(int price, String userid)
+    void testBid(long price, String userid)
     {
         hndl.placeBid(userid, price);
     }
