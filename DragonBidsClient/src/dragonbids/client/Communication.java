@@ -13,8 +13,9 @@ public class Communication implements NotificationObserver_I {
         try {
         	NotificationObserver_I stub = (NotificationObserver_I) UnicastRemoteObject.exportObject(this, 0);
         	Registry registry = LocateRegistry.getRegistry();
-            registry.bind(username, stub);
-            System.out.println("Created Notification Observer for User: " + username + "...");
+        	
+        	registry.rebind(username, stub);
+        	System.out.println("Created Notification Observer for User: " + username + "...");
             
         } catch (Exception e) {
             System.err.println("Error Creating Notification Observer for User : " + username + " " +  e.toString());

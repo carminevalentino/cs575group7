@@ -23,18 +23,19 @@ public class Listing extends Observable implements Serializable {
 	LocalDateTime createDate;
 	LocalDateTime expirationDate;
 	String creatorID;
+	String buyerID;
 	//Object photo;
 
 	// using a variety of setProperty() methods allows a proxy to easily
 	// manipulate a Listing
 
 	public Listing(int listingUID, String creatorID, String title, String description, Object photo, int startingPrice,
-			int duration) {
+			LocalDateTime expiration) {
 		this.createDate = new Timestamp(new java.util.Date().getTime()).toLocalDateTime();
 		this.listingID = listingUID;
 		this.creatorID = creatorID;
 
-		setExpiration(createDate.plusMinutes(duration));
+		this.expirationDate = expiration;
 
 		setStartingPrice(startingPrice);
 		setTitle(title);
@@ -100,12 +101,18 @@ public class Listing extends Observable implements Serializable {
 	{
 		return listingID;
 	}
+	
+	public final String getCreator()
+	{
+		return creatorID;
+	}
 
 	public final ListingSkeleton extractSkeleton() throws RemoteException {
 		ListingSkeleton skele = new ListingSkeleton();
 		skele.auctionDescription = this.description;
 		skele.auctionTile = this.title;
 		skele.sellerUsername = this.creatorID;
+		skele.buyerUsername = this.buyerID;
 		skele.listingId = this.listingID;
 		skele.currentPrice = this.currentPrice;
 		skele.auctionCompletionDateTime = this.expirationDate;

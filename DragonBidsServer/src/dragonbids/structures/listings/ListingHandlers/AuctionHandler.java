@@ -10,72 +10,73 @@ public class AuctionHandler implements ListingHandler
 
 {
 	
-    private Auction auction;
-    
-    public AuctionHandler(Auction auctionToMod)
-    {
-    	this.auction = auctionToMod;
-    }  
-
-    public boolean modify(ListingSkeleton skele)
-    {
-    	
-    	//TODO modify duration
-    	modifyTitle(skele.auctionTile);
-    	modifyDesc(skele.auctionDescription);
-    	
-    	return true;
-    }
-    
- 
-    public boolean placeBid(String userid, long newBid)
-    {   
-        if (newBid <= auction.getCurrentPrice())
-        {
-            //fail to bid
-            return false;
-        }
-        else
-        {
-            auction.addBid(userid, newBid);
-            return true;
-        }
-    }
-        
-    public boolean modifyDesc(String newDesc)
-    {
-        auction.setDesc(newDesc);
-        return true;
-    }
-    
-    public boolean modifyTitle(String newTitle)
-    {
-        auction.setTitle(newTitle);
-        return true;
-    }
-    
-    public boolean extendListing(long minutes)
-    {
-        auction.setExpiration(auction.getExpiration().plusMinutes(minutes));
-        return true;
-    }
-    
-//    public boolean modifyPhoto(Object photo)
+	//deprecated
+	
+//    private Auction auction;
+//    
+//    public AuctionHandler(Auction auctionToMod)
 //    {
-//        auction.setPhoto(photo);
+//    	this.auction = auctionToMod;
+//    }  
+//
+//    public boolean modify(ListingSkeleton skele)
+//    {
+//    	
+//    	//TODO modify duration
+//    	modifyTitle(skele.auctionTile);
+//    	modifyDesc(skele.auctionDescription);
+//    	
+//    	return true;
+//    }
+//    
+// 
+//    public boolean placeBid(String userid, long newBid)
+//    {   
+//        if (newBid <= auction.getCurrentPrice())
+//        {
+//            //fail to bid
+//            return false;
+//        }
+//        else
+//        {
+//            auction.addBid(userid, newBid);
+//            return true;
+//        }
+//    }
+//        
+//    public boolean modifyDesc(String newDesc)
+//    {
+//        auction.setDesc(newDesc);
 //        return true;
 //    }
+//    
+//    public boolean modifyTitle(String newTitle)
+//    {
+//        auction.setTitle(newTitle);
+//        return true;
+//    }
+//    
+//    public boolean extendListing(long minutes)
+//    {
+//        auction.setExpiration(auction.getExpiration().plusMinutes(minutes));
+//        return true;
+//    }
+//    
+////    public boolean modifyPhoto(Object photo)
+////    {
+////        auction.setPhoto(photo);
+////        return true;
+////    }
     
-    /* 
-     * this section is under construction for new implementation of strategy pattern for handling changes to listings residing on server
-     */
+
     public AuctionHandler() {}
     
 
     
-    public boolean modify(Listing lst, ListingSkeleton skele)
+    public String modify(Listing lst, ListingSkeleton skele)
     {
     	Auction auctionToMod = (Auction) lst;
+    	String modifiedString = new String();
     	
     	// check each "modifiable" property and update it if it has changed
     	
@@ -84,32 +85,28 @@ public class AuctionHandler implements ListingHandler
     	if (!(auctionToMod.getDesc().equals(skele.auctionDescription)))
     	{
     		lst.setDesc(skele.auctionDescription);
+    		modifiedString += "description changed to " + skele.auctionDescription + "; ";
     	}
     	
     	if (!(auctionToMod.getTitle().equals(skele.auctionTile)))
     	{
     		lst.setTitle(skele.auctionTile);
+    		modifiedString += "title changed to " + skele.auctionTile + "; ";
     	}
     	
-    	//TODO finish implementing bid behavior
-    	
     	// if there is a proposed price change from someone not the seller
-    	if (!(skele.proposedPrice == 0) && !(skele.buyerUsername.equals("")))
+    	if (!(skele.proposedPrice == 0) && !(skele.buyerUsername.equals("") && !(skele.sellerUsername.equals(lst.getCreator()))))
     	{
     		if ((placeBid(auctionToMod, skele.buyerUsername, skele.proposedPrice)))
     		{
-    			// notify user of successful bid
-    		}
-    		else
-    		{
-    			// notify user of failed bid
+    			modifiedString += "Bid Successful: " + skele.buyerUsername + " for " + skele.proposedPrice;
     		}
     	}
     			
-    	return false;
+    	return modifiedString;
     }
     
-    public boolean placeBid(Auction auction, String userid, long newBid)
+    private boolean placeBid(Auction auction, String userid, long newBid)
     {   
         if (newBid <= auction.getHighBid().getBidPrice())
         {

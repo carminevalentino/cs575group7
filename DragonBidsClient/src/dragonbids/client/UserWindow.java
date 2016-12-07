@@ -6,16 +6,25 @@ import java.awt.EventQueue;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeListener;
+
+import org.jdatepicker.impl.JDatePanelImpl;
+import org.jdatepicker.impl.JDatePickerImpl;
+import org.jdatepicker.impl.UtilDateModel;
+
 import javax.swing.event.ChangeEvent;
 import java.awt.Color;
 import java.awt.Font;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.ZoneId;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Iterator;
+import java.util.Properties;
 import java.util.Vector;
 import java.awt.Toolkit;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -27,6 +36,10 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
 
 public class UserWindow extends JFrame {
 
@@ -43,7 +56,7 @@ public class UserWindow extends JFrame {
 	private JLabel lblServerTime;
 	private SimpleDateFormat time;
 	private JPanel pAccount;
-	private JTextField sellDuration;
+	private JDatePickerImpl sellDuration;
 	private JTextField sellTitle;
 	private JTextArea sellDescription;
 	private JTextField buyTitle;
@@ -57,12 +70,15 @@ public class UserWindow extends JFrame {
 	Iterator<ListingSkeleton> it;
 	private boolean isLoggedIn = false;
 	private int activeAuctionId = -1; //This determines which Listing is loaded in the Listing Details Window
+	private String userToContact;
 	
 	private String activeUser = "";
 	private JButton btnModifyItem;
 	private JButton btnContactBuyers;
 	private JButton btnRemoveListing;
 	private JButton btnPlaceBid;
+	private JTextField MsgMessage;
+	private JTextArea MsgUsrTxtArea;
 	
 	/**
 	 * Launch the application.
@@ -107,6 +123,13 @@ public class UserWindow extends JFrame {
 		setContentPane(contentPane);
 		DefaultListModel<ListingSkeleton> listingsList = new DefaultListModel<ListingSkeleton>();
 		JList<ListingSkeleton> list = new JList<ListingSkeleton>(listingsList);
+		DefaultListModel<String> MsgUsrListString = new DefaultListModel<String>();
+		JList<String> MsgUserList = new JList<String>(MsgUsrListString);
+		MsgUserList.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent e) {
+				userToContact = MsgUsrListString.getElementAt(MsgUserList.getSelectedIndex()).toString();
+			}
+		});
 		
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		tabbedPane.addChangeListener(new ChangeListener() {
@@ -129,6 +152,8 @@ public class UserWindow extends JFrame {
 			    			buyTitle.setText(thisListing.auctionTile);
 			    			buyDescription.setText(thisListing.auctionDescription);
 			    			buyCurrentPrice.setText(Long.toString(thisListing.currentPrice));
+			    			buySellerUname.setText(thisListing.sellerUsername);
+			    			buyBuyerUname.setText(thisListing.buyerUsername);
 			    			LocalDateTime timeRemaining = LocalDateTime.of(thisListing.auctionCompletionDateTime.toLocalDate(),thisListing.auctionCompletionDateTime.toLocalTime());
 			    			buyTimeLeft.setText(timeRemaining.toString());
 			    			if(thisListing.sellerUsername.equals(activeUser))
@@ -151,14 +176,12 @@ public class UserWindow extends JFrame {
 			    	try
 			    	{
 			    		listingsList.removeAllElements(); // Clear the Table Out Before Re-populating
-			    		
 			    		listingVector = stub.getListings();
 			    		it = listingVector.iterator();
 			    		while(it.hasNext())
 			    		{
 			    			listingsList.addElement(it.next()); // Add Li
 			    		}
-			    		
 			    	}
 			    	catch (Exception getListingException)
 			    	{
@@ -167,6 +190,19 @@ public class UserWindow extends JFrame {
 			    	break;
 			    	
 			    case 4: //Messages Tab
+			    	try {
+			    		MsgUsrListString.removeAllElements();
+			    		Vector<String> usersList = new Vector<String>();
+			    		usersList = stub.getUsers();
+						Iterator<String> userIt = usersList.iterator();
+						while(userIt.hasNext())
+						{
+							MsgUsrListString.addElement(userIt.next());
+						}
+					} catch (RemoteException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 			    	break;
 			    }
 			}
@@ -236,6 +272,7 @@ public class UserWindow extends JFrame {
 					else
 					{
 						System.out.println("Welcome Back, " + usernameInput.getText() + "...");
+						Communication.getCommunication((String)usernameInput.getText());
 						usernameInput.setVisible(false);
 						lblUsername.setVisible(false);
 						btnLogin.setText("Logout");
@@ -341,6 +378,13 @@ public class UserWindow extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				// If my value in the text box is expressed in cents
+				try{
+					modifyListing();
+				}
+				catch (Exception ex)
+				{
+					//
+				}
 				
 			}
 		});
@@ -423,6 +467,28 @@ public class UserWindow extends JFrame {
 		btnModifyItem.setBounds(577, 6, 117, 29);
 		pListingDetails.add(btnModifyItem);
 		
+		JButton btnRefresh = new JButton("Refresh");
+		btnRefresh.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+	    		try {
+					ListingSkeleton thisListing = stub.getListing(activeAuctionId);
+	    			buyTitle.setText(thisListing.auctionTile);
+	    			buyDescription.setText(thisListing.auctionDescription);
+	    			buyCurrentPrice.setText(Long.toString(thisListing.currentPrice));
+	    			buySellerUname.setText(thisListing.sellerUsername);
+	    			buyBuyerUname.setText(thisListing.buyerUsername);
+	    			LocalDateTime timeRemaining = LocalDateTime.of(thisListing.auctionCompletionDateTime.toLocalDate(),thisListing.auctionCompletionDateTime.toLocalTime());
+	    			buyTimeLeft.setText(timeRemaining.toString());
+				} catch (RemoteException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnRefresh.setBounds(577, 151, 117, 29);
+		pListingDetails.add(btnRefresh);
+		
 		JPanel pCreateAuction = new JPanel();
 		pCreateAuction.setFont(new Font("Helvetica Neue", Font.PLAIN, 13));
 		tabbedPane.addTab("Sell", null, pCreateAuction, null);
@@ -443,7 +509,7 @@ public class UserWindow extends JFrame {
 		lblNewLabel_1.setBounds(6, 25, 80, 16);
 		pCreateAuction.add(lblNewLabel_1);
 		
-		JLabel lblNewLabel_3 = new JLabel("Duration:");
+		JLabel lblNewLabel_3 = new JLabel("Expiration:");
 		lblNewLabel_3.setHorizontalAlignment(SwingConstants.RIGHT);
 		lblNewLabel_3.setBounds(6, 70, 80, 16);
 		pCreateAuction.add(lblNewLabel_3);
@@ -459,10 +525,19 @@ public class UserWindow extends JFrame {
 		sellDescription.setBounds(122, 116, 445, 106);
 		pCreateAuction.add(sellDescription);
 		
-		sellDuration = new JTextField();
+		
+		UtilDateModel model = new UtilDateModel();
+		Properties p = new Properties();
+		p.put("text.today", "Today");
+		p.put("text.month", "Month");
+		p.put("text.year", "Year");
+		JDatePanelImpl datePanel = new JDatePanelImpl(model, p);
+		JDatePickerImpl datePicker = new JDatePickerImpl(datePanel, new DateLabelFormatter());
+		
+		sellDuration = datePicker;
 		sellDuration.setBounds(122, 65, 130, 26);
 		pCreateAuction.add(sellDuration);
-		sellDuration.setColumns(10);
+		//sellDuration.setColumns(10);
 		
 		sellTitle = new JTextField();
 		sellTitle.setBounds(122, 20, 445, 26);
@@ -493,6 +568,52 @@ public class UserWindow extends JFrame {
 		
 		JPanel pMessages = new JPanel();
 		tabbedPane.addTab("Messages", null, pMessages, null);
+		pMessages.setLayout(null);
+		
+		MsgUserList.setBounds(6, 6, 209, 292);
+		pMessages.add(MsgUserList);
+		
+		JSeparator separator_1 = new JSeparator();
+		separator_1.setBounds(227, 6, 1, 292);
+		pMessages.add(separator_1);
+		
+		JSeparator separator_2 = new JSeparator();
+		separator_2.setOrientation(SwingConstants.VERTICAL);
+		separator_2.setForeground(Color.BLACK);
+		separator_2.setBounds(215, 0, 13, 304);
+		pMessages.add(separator_2);
+		
+		MsgMessage = new JTextField();
+		MsgMessage.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyCode() == KeyEvent.VK_ENTER && "" != userToContact)
+				{
+					//TODO: Send Message
+					try {
+						NotificationObserver_I stub = (NotificationObserver_I)registry.lookup(userToContact);
+						stub.notifyClient(activeUser + "<" + System.currentTimeMillis() + ">" + ": " + MsgMessage.getText());
+						MsgUsrTxtArea.setText("Message Sent to " + userToContact);
+						MsgMessage.setText("");
+					} catch (RemoteException | NotBoundException e1) {
+						// TODO Auto-generated catch block
+						System.out.println(userToContact + " is not Online.");
+					}
+					
+				}
+			}
+		});
+		MsgMessage.setBounds(300, 261, 413, 26);
+		pMessages.add(MsgMessage);
+		MsgMessage.setColumns(10);
+		
+		JLabel lblMessage = new JLabel("Message:");
+		lblMessage.setBounds(227, 266, 61, 16);
+		pMessages.add(lblMessage);
+		
+		MsgUsrTxtArea = new JTextArea();
+		MsgUsrTxtArea.setBounds(227, 6, 486, 243);
+		pMessages.add(MsgUsrTxtArea);
 //		for (int i = 0; i < 100; ++i)
 //		{
 //			listingsList.addElement("Auction - Index " + i);
@@ -559,7 +680,8 @@ public class UserWindow extends JFrame {
 				try{
 					String Title=sellTitle.getText();
 					String Description= sellDescription.getText();
-					String Duration= sellDuration.getText();
+					Date Duration= (Date) sellDuration.getModel().getValue();					
+					LocalDateTime exp = LocalDateTime.ofInstant(Duration.toInstant(), ZoneId.systemDefault());
 					if(Title.length()<3){
 						JOptionPane.showMessageDialog(null,"You need to input a Title");
 						return;
@@ -568,25 +690,31 @@ public class UserWindow extends JFrame {
 						JOptionPane.showMessageDialog(null,"You need to input a Description");
 						return;
 					}
-					if(Duration.length()<10){
-						JOptionPane.showMessageDialog(null,"You need to input a Duration");
-						return;
-					}
-					LocalDateTime completeDateTime;
-					try {
-						DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-						completeDateTime = LocalDateTime.parse(Duration,dateFormat);
-					}
-					catch (Exception e)
-					{
-						JOptionPane.showMessageDialog(null,"Invalid DateTime Format dd/MM/yyyy HH:mm");
-						return;
-					}
+					if (exp.isBefore(LocalDateTime.now()))
+							{
+								JOptionPane.showMessageDialog(null, "Please choose an expiration date in the future.");
+								return;
+							}
+					
+//					if(Duration.length()<10){
+//						JOptionPane.showMessageDialog(null,"You need to input a Duration");
+//						return;
+//					}
+//					LocalDateTime completeDateTime;
+//					try {
+//						DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm");
+//						completeDateTime = LocalDateTime.ofInstant(Duration.toInstant(), ZoneId.systemDefault());
+//					}
+//					catch (Exception e)
+//					{
+//						JOptionPane.showMessageDialog(null,"Invalid DateTime Format MM/dd/yyyy HH:mm");
+//						return;
+//					}
 					ListingSkeleton listing= new ListingSkeleton();
 					listing.auctionDescription = Description;
 					listing.auctionTile = Title;
 					listing.sellerUsername = usernameInput.getText();
-					listing.auctionCompletionDateTime = completeDateTime;
+					listing.auctionCompletionDateTime = exp;
 					if(stub.createListing(listing)) {
 						//TODO: Redirect to another tab
 
@@ -594,8 +722,8 @@ public class UserWindow extends JFrame {
 						JOptionPane.showMessageDialog(null, "Done!");
 
 					}
-
 				}
+				
 				catch (RemoteException e)
 				{
 					// Failed to invoke the server
@@ -614,6 +742,14 @@ public class UserWindow extends JFrame {
 				modListing.auctionTile = buyTitle.getText();
 				modListing.auctionDescription = buyDescription.getText();
 				modListing.listingId = activeAuctionId;
+				try{
+				modListing.proposedPrice = Long.parseLong(buyPendingBidPrice.getText());
+				modListing.buyerUsername = activeUser;
+				}
+				catch (Exception e)
+				{
+					// need a better way to handle
+				}
 			//	modListing.extendAuctionMinutes = [] // consider changing this to "proposedEndTime" 
 				
 //** DEBUG: Uncomment to Test modifying listing 1 on server
@@ -636,7 +772,7 @@ public class UserWindow extends JFrame {
 	{
 		try
 		{
-			stub.remoteListing(activeAuctionId);
+			stub.removeListing(activeAuctionId);
 		}
 		catch (RemoteException e)
 		{
@@ -665,4 +801,26 @@ public class UserWindow extends JFrame {
 		buyTitle.setEditable(false);
 		buyDescription.setEditable(false);
 	}
+	
+    final class DateLabelFormatter extends JFormattedTextField.AbstractFormatter {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		private String datePattern = "MM/dd/yyyy";
+        private SimpleDateFormat dateFormatter = new SimpleDateFormat(datePattern);
+
+    @Override
+     public Object stringToValue(String text) throws ParseException {
+     return dateFormatter.parseObject(text);
+      }
+    @Override
+        public String valueToString(Object value) throws ParseException {
+            if (value != null) {
+                Calendar cal = (Calendar) value;
+                return dateFormatter.format(cal.getTime());
+            }
+            return "";
+        }
+    }
 }
