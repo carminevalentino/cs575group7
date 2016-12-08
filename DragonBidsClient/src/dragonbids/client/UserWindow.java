@@ -18,11 +18,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 import java.awt.Toolkit;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -127,7 +129,10 @@ public class UserWindow extends JFrame {
 		JList<String> MsgUserList = new JList<String>(MsgUsrListString);
 		MsgUserList.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
-				userToContact = MsgUsrListString.getElementAt(MsgUserList.getSelectedIndex()).toString();
+				if(-1 != MsgUserList.getSelectedIndex())
+				{
+					userToContact = MsgUsrListString.getElementAt(MsgUserList.getSelectedIndex()).toString();
+				}
 			}
 		});
 		
@@ -154,8 +159,21 @@ public class UserWindow extends JFrame {
 			    			buyCurrentPrice.setText(Long.toString(thisListing.currentPrice));
 			    			buySellerUname.setText(thisListing.sellerUsername);
 			    			buyBuyerUname.setText(thisListing.buyerUsername);
-			    			LocalDateTime timeRemaining = LocalDateTime.of(thisListing.auctionCompletionDateTime.toLocalDate(),thisListing.auctionCompletionDateTime.toLocalTime());
-			    			buyTimeLeft.setText(timeRemaining.toString());
+			    			
+			    			long nanosLeft = ChronoUnit.NANOS.between(LocalDateTime.now(), thisListing.auctionCompletionDateTime);
+			    			
+			    			if (nanosLeft < 0)
+			    			{
+			    				buyTimeLeft.setText("Auction Expired");
+			    			}
+			    			else
+			    			{
+				    			long days    = TimeUnit.NANOSECONDS.toDays(nanosLeft);
+				    			long hours   = TimeUnit.NANOSECONDS.toHours(nanosLeft) % 24;
+				    			long minutes = TimeUnit.NANOSECONDS.toMinutes(nanosLeft) % 60;
+				    			buyTimeLeft.setText(days + "d " + hours + "h " + minutes + "m");
+			    			}
+			    			
 			    			if(thisListing.sellerUsername.equals(activeUser))
 			    			{
 			    				activateSellerFeature();
@@ -415,6 +433,7 @@ public class UserWindow extends JFrame {
 		btnContactSeller.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
+				tabbedPane.setSelectedIndex(4);
 			}
 		});
 		btnContactSeller.setBounds(577, 125, 117, 29);
@@ -478,8 +497,20 @@ public class UserWindow extends JFrame {
 	    			buyCurrentPrice.setText(Long.toString(thisListing.currentPrice));
 	    			buySellerUname.setText(thisListing.sellerUsername);
 	    			buyBuyerUname.setText(thisListing.buyerUsername);
-	    			LocalDateTime timeRemaining = LocalDateTime.of(thisListing.auctionCompletionDateTime.toLocalDate(),thisListing.auctionCompletionDateTime.toLocalTime());
-	    			buyTimeLeft.setText(timeRemaining.toString());
+	    			
+	    			long nanosLeft = ChronoUnit.NANOS.between(LocalDateTime.now(), thisListing.auctionCompletionDateTime);
+	    			
+	    			if (nanosLeft < 0)
+	    			{
+	    				buyTimeLeft.setText("Auction Expired");
+	    			}
+	    			else
+	    			{
+		    			long days    = TimeUnit.NANOSECONDS.toDays(nanosLeft);
+		    			long hours   = TimeUnit.NANOSECONDS.toHours(nanosLeft) % 24;
+		    			long minutes = TimeUnit.NANOSECONDS.toMinutes(nanosLeft) % 60;
+		    			buyTimeLeft.setText(days + "d " + hours + "h " + minutes + "m");
+	    			}
 				} catch (RemoteException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
