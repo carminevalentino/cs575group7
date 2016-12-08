@@ -3,7 +3,7 @@ package dragonbids.server;
 import dragonbids.api.*;
 import java.io.*;
 import dragonbids.structures.listings.Listing;
-import dragonbids.structures.listings.ListingFactory;
+import dragonbids.structures.listings.AuctionFactory;
 
 import dragonbids.structures.listings.*;
 import dragonbids.structures.listings.ListingHandlers.*;
@@ -32,7 +32,7 @@ public class DragonBidsServer implements DragonBidsServer_I {
 														// listings held on
 														// server
 	private int lastAuctionUID;
-	private ListingFactory listingFactory;
+	private AuctionFactory auctionFactory;
 	private boolean isDataPersisted;
 
 	public DragonBidsServer(boolean _isDataPersisted) {
@@ -41,7 +41,7 @@ public class DragonBidsServer implements DragonBidsServer_I {
 		activeUsers = new Vector<User>();
 		activeListings = new HashMap<Integer, Listing>();
 		startupProcess();
-		listingFactory = new ListingFactory();
+		auctionFactory = new AuctionFactory();
 	}
 
 	public boolean bindServerToRegister(int port) {
@@ -114,8 +114,21 @@ public class DragonBidsServer implements DragonBidsServer_I {
 		lastAuctionUID += 1;
 		// TODO Add duration to listing
 		Listing newListing = null;
-		newListing = listingFactory.getListing("AUCTION", lastAuctionUID, arg0.sellerUsername, arg0.auctionTile,
-				arg0.auctionDescription, arg0.auctionCompletionDateTime);
+		
+		switch(arg0.listingTypes)
+		{
+		case AUCTION:
+			newListing = auctionFactory.getListing("AUCTION", lastAuctionUID, arg0.sellerUsername, arg0.auctionTile,
+					arg0.auctionDescription, arg0.auctionCompletionDateTime);
+			
+			break;
+		case DEFAULT:
+			// Do Nothing
+			break;
+			
+			//Switch off of additional listing types in the future and call to the relational factory
+		}
+		
 		if (null != newListing) {
 			activeListings.put(lastAuctionUID, newListing);
 			System.out.println("Listing Created: " + newListing.getTitle());
