@@ -727,25 +727,12 @@ public class UserWindow extends JFrame {
 								return;
 							}
 					
-//					if(Duration.length()<10){
-//						JOptionPane.showMessageDialog(null,"You need to input a Duration");
-//						return;
-//					}
-//					LocalDateTime completeDateTime;
-//					try {
-//						DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm");
-//						completeDateTime = LocalDateTime.ofInstant(Duration.toInstant(), ZoneId.systemDefault());
-//					}
-//					catch (Exception e)
-//					{
-//						JOptionPane.showMessageDialog(null,"Invalid DateTime Format MM/dd/yyyy HH:mm");
-//						return;
-//					}
 					ListingSkeleton listing= new ListingSkeleton();
 					listing.auctionDescription = Description;
 					listing.auctionTile = Title;
 					listing.sellerUsername = usernameInput.getText();
 					listing.auctionCompletionDateTime = exp;
+					listing.listingTypes = ListingSkeleton.ListingTypes.AUCTION; // The Client-side would handle determining different types of listings in the future
 					if(stub.createListing(listing)) {
 						//TODO: Redirect to another tab
 

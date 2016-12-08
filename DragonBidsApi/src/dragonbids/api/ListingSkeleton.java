@@ -19,6 +19,15 @@ public class ListingSkeleton implements Serializable{
 	public long currentPrice;
 	public long proposedPrice;
 	
+	public enum ListingTypes
+	{
+		DEFAULT,
+		AUCTION
+		// Other listing types could be added in the future
+	}
+	
+	public ListingTypes listingTypes;
+	
 	public ListingSkeleton() throws RemoteException
 	{
 		this.listingId = -1;
@@ -30,6 +39,7 @@ public class ListingSkeleton implements Serializable{
 		this.currentPrice = -1;
 		this.proposedPrice = -1;
 		this.auctionCompletionDateTime = null;
+		this.listingTypes = ListingTypes.DEFAULT;
 	}
 	
 	@Override
