@@ -17,6 +17,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.JTextArea;
 
 import dragonbids.api.*;
+import javax.swing.JCheckBox;
 
 public class ServerWindow extends JFrame {
 
@@ -32,6 +33,7 @@ public class ServerWindow extends JFrame {
 	private DragonBidsServer dragonBidsServer;
 	private boolean serverStarted = false;
 	private int portNumber = 1099; // Default Port Number RMI Registry Runs on
+	private JCheckBox chckbxPersistData;
 	
 	private static boolean isNumeric(String str)
 	{
@@ -58,8 +60,6 @@ public class ServerWindow extends JFrame {
 	 * Create the frame.
 	 */
 	public ServerWindow() {
-		dragonBidsServer = new DragonBidsServer(); //Instantiate Server Object in Constructor
-		
 		setTitle("DragonBids Server");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 600, 300);
@@ -103,6 +103,7 @@ public class ServerWindow extends JFrame {
 				
 				if (false == serverStarted) // If we don't have a running server at the moment
 				{
+					dragonBidsServer = new DragonBidsServer(chckbxPersistData.isSelected()); //Instantiate Server Object in Constructor
 					startServer();
 				}
 				else
@@ -118,6 +119,20 @@ public class ServerWindow extends JFrame {
 		});
 		btnConnect.setBounds(477, 246, 117, 29);
 		contentPane.add(btnConnect);
+		
+		chckbxPersistData = new JCheckBox("Persist Data");
+		chckbxPersistData.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if(chckbxPersistData.isSelected())
+				{
+					System.out.println("All Data will be loaded from disk, and written once Server is started...");
+					System.out.println("You cannot change this once the Server is started...");
+				}
+			}
+		});
+		chckbxPersistData.setBounds(358, 247, 107, 23);
+		contentPane.add(chckbxPersistData);
 		
 	}
 	

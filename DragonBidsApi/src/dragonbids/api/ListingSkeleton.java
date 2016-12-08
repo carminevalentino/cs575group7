@@ -1,6 +1,7 @@
 package dragonbids.api;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.rmi.RemoteException;
 import java.time.LocalDateTime;
 
@@ -16,8 +17,8 @@ public class ListingSkeleton implements Serializable{
 	public String auctionDescription;
 	public LocalDateTime auctionCompletionDateTime;
 	public int extendAuctionMinutes;
-	public long currentPrice;
-	public long proposedPrice;
+	public BigDecimal currentPrice;
+	public BigDecimal proposedPrice;
 	
 	public ListingSkeleton() throws RemoteException
 	{
@@ -27,8 +28,8 @@ public class ListingSkeleton implements Serializable{
 		this.auctionTile = "";
 		this.auctionDescription = "";
 		this.extendAuctionMinutes = -1;
-		this.currentPrice = -1;
-		this.proposedPrice = -1;
+		this.currentPrice = new BigDecimal(-1);
+		this.proposedPrice = new BigDecimal(-1);
 		this.auctionCompletionDateTime = null;
 	}
 	

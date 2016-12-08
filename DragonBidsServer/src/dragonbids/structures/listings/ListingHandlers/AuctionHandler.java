@@ -77,6 +77,7 @@ public class AuctionHandler implements ListingHandler
     {
     	Auction auctionToMod = (Auction) lst;
     	String modifiedString = new String();
+    	long proPrice = skele.proposedPrice.movePointRight(2).longValue();
     	
     	// check each "modifiable" property and update it if it has changed
     	
@@ -95,9 +96,9 @@ public class AuctionHandler implements ListingHandler
     	}
     	
     	// if there is a proposed price change from someone not the seller
-    	if (!(skele.proposedPrice == 0) && !(skele.buyerUsername.equals("") && !(skele.sellerUsername.equals(lst.getCreator()))))
+    	if (!(proPrice == 0) && !(skele.buyerUsername.equals("") && !(skele.sellerUsername.equals(lst.getCreator()))))
     	{
-    		if ((placeBid(auctionToMod, skele.buyerUsername, skele.proposedPrice)))
+    		if ((placeBid(auctionToMod, skele.buyerUsername, proPrice)))
     		{
     			modifiedString += "Bid Successful: " + skele.buyerUsername + " for " + skele.proposedPrice;
     		}

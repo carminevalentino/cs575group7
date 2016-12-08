@@ -21,13 +21,13 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.Temporal;
 import java.util.concurrent.TimeUnit;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.Vector;
 import java.awt.Toolkit;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -38,8 +38,13 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.math.BigDecimal;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
 
 public class UserWindow extends JFrame {
 
@@ -70,12 +75,15 @@ public class UserWindow extends JFrame {
 	Iterator<ListingSkeleton> it;
 	private boolean isLoggedIn = false;
 	private int activeAuctionId = -1; //This determines which Listing is loaded in the Listing Details Window
+	private String userToContact;
 	
 	private String activeUser = "";
 	private JButton btnModifyItem;
 	private JButton btnContactBuyers;
 	private JButton btnRemoveListing;
 	private JButton btnPlaceBid;
+	private JTextField MsgMessage;
+	private JTextArea MsgUsrTxtArea;
 	
 	/**
 	 * Launch the application.
@@ -120,6 +128,13 @@ public class UserWindow extends JFrame {
 		setContentPane(contentPane);
 		DefaultListModel<ListingSkeleton> listingsList = new DefaultListModel<ListingSkeleton>();
 		JList<ListingSkeleton> list = new JList<ListingSkeleton>(listingsList);
+		DefaultListModel<String> MsgUsrListString = new DefaultListModel<String>();
+		JList<String> MsgUserList = new JList<String>(MsgUsrListString);
+		MsgUserList.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent e) {
+				userToContact = MsgUsrListString.getElementAt(MsgUserList.getSelectedIndex()).toString();
+			}
+		});
 		
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		tabbedPane.addChangeListener(new ChangeListener() {
@@ -141,7 +156,7 @@ public class UserWindow extends JFrame {
 			    		{
 			    			buyTitle.setText(thisListing.auctionTile);
 			    			buyDescription.setText(thisListing.auctionDescription);
-			    			buyCurrentPrice.setText(Long.toString(thisListing.currentPrice));
+			    			buyCurrentPrice.setText("$" + thisListing.currentPrice.movePointLeft(2).toString());
 			    			
 			    			long nanosLeft = ChronoUnit.NANOS.between(LocalDateTime.now(), thisListing.auctionCompletionDateTime);
 			    			
@@ -157,6 +172,11 @@ public class UserWindow extends JFrame {
 				    			buyTimeLeft.setText(days + "d " + hours + "h " + minutes + "m");
 			    			}
 			    				
+			    			buySellerUname.setText(thisListing.sellerUsername);
+			    			buyBuyerUname.setText(thisListing.buyerUsername);
+			    			LocalDateTime timeRemaining = LocalDateTime.of(thisListing.auctionCompletionDateTime.toLocalDate(),thisListing.auctionCompletionDateTime.toLocalTime());
+			    			buyTimeLeft.setText(timeRemaining.toString());
+
 			    			if(thisListing.sellerUsername.equals(activeUser))
 			    			{
 			    				activateSellerFeature();
@@ -178,14 +198,12 @@ public class UserWindow extends JFrame {
 			    	try
 			    	{
 			    		listingsList.removeAllElements(); // Clear the Table Out Before Re-populating
-			    		
 			    		listingVector = stub.getListings();
 			    		it = listingVector.iterator();
 			    		while(it.hasNext())
 			    		{
 			    			listingsList.addElement(it.next()); // Add Li
 			    		}
-			    		
 			    	}
 			    	catch (Exception getListingException)
 			    	{
@@ -194,6 +212,19 @@ public class UserWindow extends JFrame {
 			    	break;
 			    	
 			    case 4: //Messages Tab
+			    	try {
+			    		MsgUsrListString.removeAllElements();
+			    		Vector<String> usersList = new Vector<String>();
+			    		usersList = stub.getUsers();
+						Iterator<String> userIt = usersList.iterator();
+						while(userIt.hasNext())
+						{
+							MsgUsrListString.addElement(userIt.next());
+						}
+					} catch (RemoteException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 			    	break;
 			    }
 			}
@@ -263,6 +294,7 @@ public class UserWindow extends JFrame {
 					else
 					{
 						System.out.println("Welcome Back, " + usernameInput.getText() + "...");
+						Communication.getCommunication((String)usernameInput.getText());
 						usernameInput.setVisible(false);
 						lblUsername.setVisible(false);
 						btnLogin.setText("Logout");
@@ -376,7 +408,6 @@ public class UserWindow extends JFrame {
 					//
 				}
 				
-				
 			}
 		});
 		btnPlaceBid.setBounds(577, 269, 117, 29);
@@ -458,6 +489,39 @@ public class UserWindow extends JFrame {
 		btnModifyItem.setBounds(577, 6, 117, 29);
 		pListingDetails.add(btnModifyItem);
 		
+		JButton btnRefresh = new JButton("Refresh");
+		btnRefresh.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+	    		try {
+					ListingSkeleton thisListing = stub.getListing(activeAuctionId);
+	    			buyTitle.setText(thisListing.auctionTile);
+	    			buyDescription.setText(thisListing.auctionDescription);
+	    			buyCurrentPrice.setText("$" + thisListing.currentPrice);
+	    			buySellerUname.setText(thisListing.sellerUsername);
+	    			buyBuyerUname.setText(thisListing.buyerUsername);
+	    			long nanosLeft = ChronoUnit.NANOS.between(LocalDateTime.now(), thisListing.auctionCompletionDateTime);
+	    			
+	    			if (nanosLeft < 0)
+	    			{
+	    				buyTimeLeft.setText("Auction Expired");
+	    			}
+	    			else
+	    			{
+		    			long days    = TimeUnit.NANOSECONDS.toDays(nanosLeft);
+		    			long hours   = TimeUnit.NANOSECONDS.toHours(nanosLeft) % 24;
+		    			long minutes = TimeUnit.NANOSECONDS.toMinutes(nanosLeft) % 60;
+		    			buyTimeLeft.setText(days + "d " + hours + "h " + minutes + "m");
+	    			}
+				} catch (RemoteException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnRefresh.setBounds(577, 151, 117, 29);
+		pListingDetails.add(btnRefresh);
+		
 		JPanel pCreateAuction = new JPanel();
 		pCreateAuction.setFont(new Font("Helvetica Neue", Font.PLAIN, 13));
 		tabbedPane.addTab("Sell", null, pCreateAuction, null);
@@ -537,6 +601,52 @@ public class UserWindow extends JFrame {
 		
 		JPanel pMessages = new JPanel();
 		tabbedPane.addTab("Messages", null, pMessages, null);
+		pMessages.setLayout(null);
+		
+		MsgUserList.setBounds(6, 6, 209, 292);
+		pMessages.add(MsgUserList);
+		
+		JSeparator separator_1 = new JSeparator();
+		separator_1.setBounds(227, 6, 1, 292);
+		pMessages.add(separator_1);
+		
+		JSeparator separator_2 = new JSeparator();
+		separator_2.setOrientation(SwingConstants.VERTICAL);
+		separator_2.setForeground(Color.BLACK);
+		separator_2.setBounds(215, 0, 13, 304);
+		pMessages.add(separator_2);
+		
+		MsgMessage = new JTextField();
+		MsgMessage.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyCode() == KeyEvent.VK_ENTER && "" != userToContact)
+				{
+					//TODO: Send Message
+					try {
+						NotificationObserver_I stub = (NotificationObserver_I)registry.lookup(userToContact);
+						stub.notifyClient(activeUser + "<" + System.currentTimeMillis() + ">" + ": " + MsgMessage.getText());
+						MsgUsrTxtArea.setText("Message Sent to " + userToContact);
+						MsgMessage.setText("");
+					} catch (RemoteException | NotBoundException e1) {
+						// TODO Auto-generated catch block
+						System.out.println(userToContact + " is not Online.");
+					}
+					
+				}
+			}
+		});
+		MsgMessage.setBounds(300, 261, 413, 26);
+		pMessages.add(MsgMessage);
+		MsgMessage.setColumns(10);
+		
+		JLabel lblMessage = new JLabel("Message:");
+		lblMessage.setBounds(227, 266, 61, 16);
+		pMessages.add(lblMessage);
+		
+		MsgUsrTxtArea = new JTextArea();
+		MsgUsrTxtArea.setBounds(227, 6, 486, 243);
+		pMessages.add(MsgUsrTxtArea);
 //		for (int i = 0; i < 100; ++i)
 //		{
 //			listingsList.addElement("Auction - Index " + i);
@@ -666,7 +776,8 @@ public class UserWindow extends JFrame {
 				modListing.auctionDescription = buyDescription.getText();
 				modListing.listingId = activeAuctionId;
 				try{
-				modListing.proposedPrice = Long.parseLong(buyPendingBidPrice.getText());
+				modListing.proposedPrice = new BigDecimal(buyPendingBidPrice.getText());
+				//modListing.proposedPrice = Long.parseLong(buyPendingBidPrice.getText());
 				modListing.buyerUsername = activeUser;
 				}
 				catch (Exception e)
@@ -695,7 +806,7 @@ public class UserWindow extends JFrame {
 	{
 		try
 		{
-			stub.remoteListing(activeAuctionId);
+			stub.removeListing(activeAuctionId);
 		}
 		catch (RemoteException e)
 		{
