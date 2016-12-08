@@ -6,6 +6,7 @@ import dragonbids.api.ListingSkeleton;
 import java.util.*;
 import java.time.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * @author Lew Cannalongo
@@ -114,7 +115,7 @@ public class Listing extends Observable implements Serializable {
 		skele.sellerUsername = this.creatorID;
 		skele.buyerUsername = this.buyerID;
 		skele.listingId = this.listingID;
-		skele.currentPrice = this.currentPrice;
+		skele.currentPrice = new BigDecimal(this.currentPrice);
 		skele.auctionCompletionDateTime = this.expirationDate;
 
 		return skele;
