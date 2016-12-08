@@ -17,6 +17,9 @@ import java.awt.Font;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.Temporal;
+import java.util.concurrent.TimeUnit;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
@@ -29,6 +32,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import dragonbids.api.*;
+
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -138,8 +142,21 @@ public class UserWindow extends JFrame {
 			    			buyTitle.setText(thisListing.auctionTile);
 			    			buyDescription.setText(thisListing.auctionDescription);
 			    			buyCurrentPrice.setText(Long.toString(thisListing.currentPrice));
-			    			LocalDateTime timeRemaining = LocalDateTime.of(thisListing.auctionCompletionDateTime.toLocalDate(),thisListing.auctionCompletionDateTime.toLocalTime());
-			    			buyTimeLeft.setText(timeRemaining.toString());
+			    			
+			    			long nanosLeft = ChronoUnit.NANOS.between(LocalDateTime.now(), thisListing.auctionCompletionDateTime);
+			    			
+			    			if (nanosLeft < 0)
+			    			{
+			    				buyTimeLeft.setText("Auction Expired");
+			    			}
+			    			else
+			    			{
+				    			long days    = TimeUnit.NANOSECONDS.toDays(nanosLeft);
+				    			long hours   = TimeUnit.NANOSECONDS.toHours(nanosLeft) % 24;
+				    			long minutes = TimeUnit.NANOSECONDS.toMinutes(nanosLeft) % 60;
+				    			buyTimeLeft.setText(days + "d " + hours + "h " + minutes + "m");
+			    			}
+			    				
 			    			if(thisListing.sellerUsername.equals(activeUser))
 			    			{
 			    				activateSellerFeature();
@@ -149,6 +166,7 @@ public class UserWindow extends JFrame {
 			    				deactivateSellerFeature();
 			    			}
 			    			//Populate Listing Details Window with this ListingSkeleton
+			    			
 			    		}
 			    	}
 			    	break;
